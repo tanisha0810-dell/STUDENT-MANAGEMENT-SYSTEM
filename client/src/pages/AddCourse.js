@@ -29,8 +29,6 @@ export default function AddCourse() {
 
       if (res.data.success) {
         const c = res.data.course;
-
-        // 🔥 Notify all clients
         sendWSMessage({
           type: "NEW_COURSE",
           payload: {

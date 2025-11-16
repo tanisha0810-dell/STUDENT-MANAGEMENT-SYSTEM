@@ -27,12 +27,16 @@ export const initWebSocketServer = (server) => {
                         });
                         break;
 
-                    case "NEW_COURSE":     // ⬅️ ADD THIS BLOCK
+                    case "NEW_COURSE":     
                         broadcast({
                             type: "NEW_COURSE",
                             payload: data.payload
                         });
                         break;
+
+                    case "COURSE_UPDATED":
+                         broadcast({ type: "COURSE_UPDATED", payload: data.payload });
+                        break;    
 
                     case "ANNOUNCEMENT":
                         broadcast({

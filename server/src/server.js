@@ -9,6 +9,7 @@ import { initWebSocketServer} from "./ws/wsServer.js";
 import studentRoutes from "./routes/studentRoutes.js";
 import teacherRoutes from "./routes/teacherRoutes.js";
 import courseRoutes from "./routes/courseRoutes.js";
+import announcementRoutes from "./routes/AnnouncementRoutes.js";
 
 dotenv.config();
 
@@ -23,6 +24,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/teachers", teacherRoutes);
 app.use("/api/courses", courseRoutes);
+app.use("/api/announcements", announcementRoutes);
+
 
 app.get("/", (req, res) =>{
     res.send("Student Management System API running");

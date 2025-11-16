@@ -1,31 +1,23 @@
+import React from "react";
 import { Link } from "react-router-dom";
+import "./Navbar.css";
 
 export default function Navbar({ role }) {
-
   return (
-    <nav style={{
-      background: "#222",
-      padding: "12px",
-      display: "flex",
-      gap: "20px",
-      color: "white"
-    }}>
-      <Link to="/" style={{ color: "white" }}>Home</Link>
+    <nav className="navbar">
+      <div className="nav-container">
+        <div className="nav-left">
+          <Link to="/" className="nav-logo">Student Management System</Link>
+        </div>
 
-      {(role === "admin" || role === "teacher") && (
-        <Link to="/students" style={{ color: "white" }}>Students</Link>
-      )}
-
-      <Link to="/announcements" style={{ color: "white" }}>
-        Announcements
-      </Link>
-
-      {/* FIXED: added color:white */}
-      <Link to="/add-course" style={{ color: "white" }}>
-        Add Course
-      </Link>
-
+        <div className="nav-links">
+          <Link to="/" className="nav-item">Home</Link>
+          <Link to="/students" className="nav-item">Students</Link>
+          <Link to="/announcements" className="nav-item">Announcements</Link>
+          <Link to="/courses" className="nav-item">Courses</Link>
+          <Link to="/teachers" className="nav-item">Teachers</Link>
+        </div>
+      </div>
     </nav>
   );
 }
-

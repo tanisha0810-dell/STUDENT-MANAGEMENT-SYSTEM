@@ -1,0 +1,40 @@
+.navbar {
+  width: 100%;
+  background: #222;
+  padding: 12px 0;
+  color: white;
+}
+
+.nav-container {
+  width: 90%;
+  max-width: 1300px;
+  margin: auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-left .nav-logo {
+  color: #fff;
+  font-size: 22px;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.nav-links {
+  display: flex;
+  gap: 25px;
+}
+
+.nav-item {
+  color: #ddd;
+  text-decoration: none;
+  font-size: 16px;
+  transition: 0.2s;
+}
+
+.nav-item:hover {
+  color: #fff;
+  text-decoration: underline;
+}
