@@ -42,7 +42,6 @@ export default function CourseDashboard(){
       </ul>
 
       <div style={{ marginTop: 12 }}>
-        <Link to={`/courses/${id}/assign-teacher`}><button style={smallBtn}>Assign Teacher</button></Link>
         <Link to={`/courses/${id}/enroll`}><button style={smallBtn}>Enroll/Remove Students</button></Link>
       </div>
     </div>

@@ -8,7 +8,7 @@ export default function EnrollStudents(){
   const [course, setCourse] = useState(null);
 
   const load = async () => {
-    const [sRes, cRes] = await Promise.all([api.get("/api/students"), api.get(`/api/courses/${id}`)]);
+    const [sRes, cRes] = await Promise.all([api.get("/students"), api.get(`/courses/${id}`)]);
     if (sRes.data.success) setAllStudents(sRes.data.students);
     if (cRes.data.success) setCourse(cRes.data.course);
   };
@@ -17,14 +17,14 @@ export default function EnrollStudents(){
 
   const enroll = async (studentId) => {
     try {
-      const res = await api.post(`/api/courses/${id}/add-student`, { studentId });
+      const res = await api.post(`/courses/${id}/add-student`, { studentId });
       if (res.data.success) setCourse(res.data.course);
     } catch (err) { alert(err.message); }
   };
 
   const remove = async (studentId) => {
     try {
-      const res = await api.post(`/api/courses/${id}/remove-student`, { studentId });
+      const res = await api.post(`/courses/${id}/remove-student`, { studentId });
       if (res.data.success) setCourse(res.data.course);
     } catch (err) { alert(err.message); }
   };

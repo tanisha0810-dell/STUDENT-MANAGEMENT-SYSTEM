@@ -20,7 +20,6 @@ export default function EditStudent() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Correct API routes
         const [courseRes, studentRes] = await Promise.all([
           api.get("/courses"),
           api.get(`/students/${id}`),

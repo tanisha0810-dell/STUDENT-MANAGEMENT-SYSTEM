@@ -40,7 +40,6 @@ export default function Students() {
     try {
       await api.delete(`/students/${id}`);
 
-      // instantly update list
       setStudents((prev) => prev.filter((s) => s.id !== id));
       alert("Student deleted successfully!");
     } catch (err) {
@@ -51,7 +50,6 @@ export default function Students() {
   useEffect(() => {
     loadStudents();
 
-    // WebSocket Live updates
     window.wsCallback = (data) => {
   if (!data?.type) return;
 
