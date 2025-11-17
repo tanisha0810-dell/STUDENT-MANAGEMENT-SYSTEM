@@ -24,7 +24,7 @@ export default function TeacherList() {
   const deleteTeacher = async (id) => {
     if (!window.confirm("Delete this teacher?")) return;
     try {
-      const res = await api.delete(`/api/teachers/${id}`);
+      const res = await api.delete(`/teachers/${id}`);
       if (res.data.success) load();
     } catch (err) {
       console.error(err);

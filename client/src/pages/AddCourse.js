@@ -39,7 +39,7 @@ export default function AddCourse() {
         });
 
         setMsg("Course added successfully!");
-        setForm({ name: "", code: "" });
+        setForm({ name: "", code: ""});
       } else {
         setMsg("Failed to add course");
       }

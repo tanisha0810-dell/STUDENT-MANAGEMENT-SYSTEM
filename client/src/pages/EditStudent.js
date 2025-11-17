@@ -20,15 +20,21 @@ export default function EditStudent() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        // FIXED — correct API URLs
+        // Correct API routes
         const [courseRes, studentRes] = await Promise.all([
           api.get("/courses"),
-          api.get("/students/" + id),
+          api.get(`/students/${id}`),
         ]);
 
-        setCourses(courseRes.data.courses || []);
+        if (courseRes.data.success) {
+          setCourses(courseRes.data.courses);
+        }
 
         const s = studentRes.data.student;
+        if (!s) {
+          setMsg("Student not found");
+          return;
+        }
 
         setForm({
           name: s.name,
@@ -36,9 +42,9 @@ export default function EditStudent() {
           rollNumber: s.rollNumber,
           course: s.course?._id || "",
         });
-
       } catch (err) {
         console.error("Edit load error:", err);
+        setMsg("Error loading data");
       }
 
       setLoading(false);
@@ -59,8 +65,7 @@ export default function EditStudent() {
     setMsg("Saving...");
 
     try {
-      // FIXED — correct API URL
-      const res = await api.put("/students/" + id, form);
+      const res = await api.put(`/students/${id}`, form);
 
       if (res.data.success) {
         setMsg("Updated successfully!");
@@ -110,7 +115,7 @@ export default function EditStudent() {
             required
           />
 
-          {/* <label style={label}>Course</label>
+          <label style={label}>Course</label>
           <select
             name="course"
             value={form.course}
@@ -124,7 +129,7 @@ export default function EditStudent() {
                 {c.name} ({c.code})
               </option>
             ))}
-          </select> */}
+          </select>
 
           <button style={btn}>Save Changes</button>
         </form>

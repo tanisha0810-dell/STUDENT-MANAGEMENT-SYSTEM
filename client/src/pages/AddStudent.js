@@ -14,7 +14,6 @@ export default function AddStudent() {
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
 
-  // FETCH COURSES INITIALLY
   useEffect(() => {
     api.get("/courses")
       .then(res => {
@@ -25,7 +24,6 @@ export default function AddStudent() {
       .catch(err => console.error("Course fetch error:", err));
   }, []);
 
-  // LISTEN FOR NEW_COURSE FROM WEBSOCKET
   useEffect(() => {
     if (!socket) return;
 

@@ -56,7 +56,7 @@ export default function CourseList() {
                 <td style={cell}>{(c.students || []).length}</td>
                 <td style={cell}>
                   <Link to={`/courses/${c._id}`}><button style={smallBtn}>Open</button></Link>
-                  <Link to={`/courses/${c._id}/assign-teacher`}><button style={smallBtn}>Assign</button></Link>
+                  {/* <Link to={`/courses/${c._id}/assign-teacher`}><button style={smallBtn}>Assign</button></Link> */}
                   <Link to={`/courses/${c._id}/enroll`}><button style={smallBtn}>Enroll</button></Link>
                 </td>
               </tr>

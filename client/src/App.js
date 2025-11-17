@@ -10,7 +10,6 @@ import EditStudent from "./pages/EditStudent";
 import AddCourse from "./pages/AddCourse";
 import CourseList from "./pages/CourseList";
 import CourseDashboard from "./pages/CourseDashboard";
-import AssignTeacher from "./pages/AssignTeacher";
 import EnrollStudents from "./pages/EnrollStudents";
 import TeacherList from "./pages/TeacherList";
 import AddTeacher from "./pages/AddTeacher";
@@ -19,10 +18,11 @@ import AddAnnouncement from "./pages/AddAnnouncement";
 
 
 import { connectWebSocket } from "./webSocketClient";
+import EditTeacher from "./pages/EditTeacher";
 
 function App() {
   const [logs, setLogs] = useState([]);
-  const [role, setRole] = useState("admin"); // CHANGE LATER after login system
+  const [role, setRole] = useState("admin"); 
 
   useEffect(() => {
     connectWebSocket();
@@ -47,12 +47,10 @@ function App() {
           <Route path="/announcements" element={<Announcements logs={logs} />} />
           <Route path="/courses" element={<CourseList />} />
           <Route path="/courses/:id" element={<CourseDashboard />} />
-          <Route path="/courses/:id/assign-teacher" element={<AssignTeacher />} />
           <Route path="/courses/:id/enroll" element={<EnrollStudents />} />
           <Route path="/teachers" element={<TeacherList />} />
           <Route path="/add-teacher" element={<AddTeacher />} />
-          {/* <Route path="/teachers/:id/edit" element={<UpdateTeacher />} />  */}
-          <Route path="/assign-teacher" element={<AssignTeacher />} />
+          <Route path="/teachers/:id/edit" element={<EditTeacher />} />
           <Route path="/announcements/add" element={<AddAnnouncement />} />
 
           

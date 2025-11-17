@@ -2,7 +2,6 @@ import Course from "../models/Course.js";
 import Teacher from "../models/Teacher.js";
 import Student from "../models/Student.js";
 import { broadcast } from "../ws/wsServer.js";
-
 /**
  * Create course
  */
@@ -63,7 +62,6 @@ export const addStudentToCourse = async (req, res) => {
       return res.json({ success: false, message: "Course not found" });
     }
 
-    // also update student's `course` field for consistency
     await Student.findByIdAndUpdate(studentId, { course: updated._id });
 
     broadcast({ type: "COURSE_UPDATED", payload: updated });
@@ -94,7 +92,6 @@ export const removeStudentFromCourse = async (req, res) => {
       return res.json({ success: false, message: "Course not found" });
     }
 
-    // if the student's course was this course, unset it
     const stu = await Student.findById(studentId);
     if (stu && String(stu.course) === String(courseId)) {
       await Student.findByIdAndUpdate(studentId, { course: null });
@@ -111,26 +108,41 @@ export const removeStudentFromCourse = async (req, res) => {
 /**
  * Assign a teacher to a course
  */
+
+// Assign Teacher to Course (Complete 2-way Sync)
 export const assignTeacherToCourse = async (req, res) => {
   try {
-    const courseId = req.params.courseId || req.params.courseid || req.params.id;
+    const courseId = req.params.id;
     const { teacherId } = req.body;
 
+    const course = await Course.findById(courseId);
     const teacher = await Teacher.findById(teacherId);
-    if (!teacher) return res.json({ success: false, message: "Teacher not found" });
 
-    const course = await Course.findByIdAndUpdate(
-      courseId,
-      { teacher: teacher._id },
-      { new: true }
-    ).populate("teacher", "name email").populate("students", "name email rollNumber");
+    if (!course || !teacher) {
+      return res.status(404).json({ success: false, message: "Course or Teacher not found" });
+    }
 
-    broadcast({ type: "COURSE_UPDATED", payload: course });
-    res.json({ success: true, course });
+    if (teacher.courseId && teacher.courseId.toString() !== courseId) {
+      await Course.findByIdAndUpdate(teacher.courseId, { teacher: null });
+    }
+
+    if (course.teacher && course.teacher.toString() !== teacherId) {
+      await Teacher.findByIdAndUpdate(course.teacher, { courseId: null });
+    }
+    course.teacher = teacherId;
+    teacher.courseId = courseId;
+
+    await course.save();
+    await teacher.save();
+
+    return res.json({ success: true, message: "Teacher assigned successfully" });
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    console.log(error);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
+
+
 
 /**
  * Get course by id
@@ -138,7 +150,10 @@ export const assignTeacherToCourse = async (req, res) => {
 export const getCourseById = async (req, res) => {
   try {
     const courseId = req.params.courseId || req.params.courseid || req.params.id;
-    const course = await Course.findById(courseId).populate("teacher", "name email").populate("students", "name email rollNumber");
+    const course = await Course.findById(courseId)
+    .select("name code subject teacher students")
+    .populate("teacher", "name email")
+    .populate("students", "name email rollNumber");
     if (!course) return res.json({ success: false, message: "Course not found" });
     res.json({ success: true, course });
   } catch (error) {
