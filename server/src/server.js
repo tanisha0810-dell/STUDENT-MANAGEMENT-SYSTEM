@@ -6,10 +6,12 @@ import connectDB from "./config/db.js";
 import { initWebSocketServer} from "./ws/wsServer.js";
 import { connectRedis } from "./utils/redisClient.js";
 
+
 import studentRoutes from "./routes/studentRoutes.js";
 import teacherRoutes from "./routes/teacherRoutes.js";
 import courseRoutes from "./routes/courseRoutes.js";
 import announcementRoutes from "./routes/AnnouncementRoutes.js";
+import bullQueueRoutes from "./routes/bullQueueRoutes.js";
 
 dotenv.config();
 
@@ -24,7 +26,9 @@ connectRedis();
 app.use("/api/students", studentRoutes);
 app.use("/api/teachers", teacherRoutes);
 app.use("/api/courses", courseRoutes);
+
 app.use("/api/announcements", announcementRoutes);
+app.use("/api/bullmq", bullQueueRoutes);
 
 
 app.get("/", (req, res) =>{
@@ -33,7 +37,7 @@ app.get("/", (req, res) =>{
 
 initWebSocketServer(server);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 server.listen(PORT, () =>{
-    console.log("Server started");
+    console.log(`Server started on port ${PORT}`);
 })
