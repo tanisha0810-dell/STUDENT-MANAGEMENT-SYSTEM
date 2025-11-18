@@ -2,9 +2,9 @@ import Course from "../models/Course.js";
 import Teacher from "../models/Teacher.js";
 import Student from "../models/Student.js";
 import { broadcast } from "../ws/wsServer.js";
-/**
- * Create course
- */
+import redis from "../utils/redisClient.js";
+
+
 export const addCourse = async (req, res) => {
   try {
     const { name, code, teacher, students } = req.body;
@@ -16,9 +16,13 @@ export const addCourse = async (req, res) => {
       students: students || [],
     });
 
-    const populated = await Course.findById(course._id).populate("teacher", "name email").populate("students", "name email rollNumber");
+    const populated = await Course.findById(course._id)
+      .populate("teacher", "name email")
+      .populate("students", "name email rollNumber");
 
     broadcast({ type: "NEW_COURSE", payload: populated });
+
+    await redis.del("all_courses");
 
     res.json({ success: true, course: populated });
   } catch (error) {
@@ -26,9 +30,7 @@ export const addCourse = async (req, res) => {
   }
 };
 
-/**
- * Get all courses (populated)
- */
+
 export const getAllCourses = async (req, res) => {
   try {
     const courses = await Course.find()
@@ -41,12 +43,9 @@ export const getAllCourses = async (req, res) => {
   }
 };
 
-/**
- * Add a student to course (also update Student.course)
- */
+
 export const addStudentToCourse = async (req, res) => {
   try {
-    // accept multiple possible param names
     const courseId = req.params.courseId || req.params.courseid || req.params.id;
     const { studentId } = req.body;
 
@@ -66,15 +65,16 @@ export const addStudentToCourse = async (req, res) => {
 
     broadcast({ type: "COURSE_UPDATED", payload: updated });
 
+    await redis.del("all_courses");
+    await redis.del(`course_${courseId}`);
+
     res.json({ success: true, course: updated });
   } catch (error) {
     res.json({ success: false, message: error.message });
   }
 };
 
-/**
- * Remove a student from course (also clear Student.course if it was this course)
- */
+
 export const removeStudentFromCourse = async (req, res) => {
   try {
     const courseId = req.params.courseId || req.params.courseid || req.params.id;
@@ -99,17 +99,16 @@ export const removeStudentFromCourse = async (req, res) => {
 
     broadcast({ type: "COURSE_UPDATED", payload: updated });
 
+    await redis.del("all_courses");
+    await redis.del(`course_${courseId}`);
+
     res.json({ success: true, course: updated });
   } catch (error) {
     res.json({ success: false, message: error.message });
   }
 };
 
-/**
- * Assign a teacher to a course
- */
 
-// Assign Teacher to Course (Complete 2-way Sync)
 export const assignTeacherToCourse = async (req, res) => {
   try {
     const courseId = req.params.id;
@@ -129,11 +128,16 @@ export const assignTeacherToCourse = async (req, res) => {
     if (course.teacher && course.teacher.toString() !== teacherId) {
       await Teacher.findByIdAndUpdate(course.teacher, { courseId: null });
     }
+
     course.teacher = teacherId;
     teacher.courseId = courseId;
 
     await course.save();
     await teacher.save();
+
+    await redis.del("all_courses");
+    await redis.del(`course_${courseId}`);
+    await redis.del(`teacher_${teacherId}`);
 
     return res.json({ success: true, message: "Teacher assigned successfully" });
   } catch (error) {
@@ -143,18 +147,18 @@ export const assignTeacherToCourse = async (req, res) => {
 };
 
 
-
-/**
- * Get course by id
- */
 export const getCourseById = async (req, res) => {
   try {
     const courseId = req.params.courseId || req.params.courseid || req.params.id;
+
     const course = await Course.findById(courseId)
-    .select("name code subject teacher students")
-    .populate("teacher", "name email")
-    .populate("students", "name email rollNumber");
-    if (!course) return res.json({ success: false, message: "Course not found" });
+      .select("name code subject teacher students")
+      .populate("teacher", "name email")
+      .populate("students", "name email rollNumber");
+
+    if (!course)
+      return res.json({ success: false, message: "Course not found" });
+
     res.json({ success: true, course });
   } catch (error) {
     res.json({ success: false, message: error.message });

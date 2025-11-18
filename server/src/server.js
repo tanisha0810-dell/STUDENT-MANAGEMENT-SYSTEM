@@ -1,10 +1,10 @@
 import express from "express";
 import http from "http";
 import dotenv from "dotenv";
-import authRoutes from "./routes/authRoutes.js"
 import cors from "cors";
 import connectDB from "./config/db.js";
 import { initWebSocketServer} from "./ws/wsServer.js";
+import { connectRedis } from "./utils/redisClient.js";
 
 import studentRoutes from "./routes/studentRoutes.js";
 import teacherRoutes from "./routes/teacherRoutes.js";
@@ -19,8 +19,8 @@ const server = http.createServer(app);
 connectDB();
 app.use(cors());
 app.use(express.json());
+connectRedis();
 
-app.use("/api/auth", authRoutes);
 app.use("/api/students", studentRoutes);
 app.use("/api/teachers", teacherRoutes);
 app.use("/api/courses", courseRoutes);

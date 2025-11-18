@@ -138,7 +138,7 @@ export default function EditStudent() {
 }
 
 
-// -------------- Styles ----------------
+
 
 const page = {
   display: "flex",

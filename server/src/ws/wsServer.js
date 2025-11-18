@@ -16,9 +16,6 @@ export const initWebSocketServer = (server) => {
                 console.log("WS RECEIVED:", data);
 
                 switch (data.type) {
-                    case "REGISTER":
-                        ws.user = data.user;
-                        break;
 
                     case "NEW_STUDENT":
                         broadcast({
