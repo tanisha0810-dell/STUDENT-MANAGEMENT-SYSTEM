@@ -1,8 +1,9 @@
 import Teacher from "../models/Teacher.js";
 import Course from "../models/Course.js";
 import { broadcast } from "../ws/wsServer.js";
+import redis from "../utils/redisClient.js";
 
-// CREATE 
+
 export const addTeacher = async (req, res) => {
   try {
     const { name, email, subject, courseId } = req.body;
@@ -26,9 +27,7 @@ export const addTeacher = async (req, res) => {
 
     if (assignedCourse) {
       if (assignedCourse.teacher) {
-        await Teacher.findByIdAndUpdate(assignedCourse.teacher, {
-          courseId: null
-        });
+        await Teacher.findByIdAndUpdate(assignedCourse.teacher, { courseId: null });
       }
 
       assignedCourse.teacher = teacher._id;
@@ -38,6 +37,8 @@ export const addTeacher = async (req, res) => {
       await teacher.save();
     }
 
+    await redis.del("teachers:all");
+
     return res.json({
       success: true,
       message: "Teacher added successfully",
@@ -46,30 +47,42 @@ export const addTeacher = async (req, res) => {
 
   } catch (error) {
     console.log("Add teacher error:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal server error" });
+    return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
 
-// GET ALL
 export const getAllTeachers = async (req, res) => {
   try {
+    const cached = await redis.get("teachers:all");
+    if (cached) {
+      return res.json({ success: true, teachers: JSON.parse(cached), cached: true });
+    }
+
     const teachers = await Teacher.find().populate("courseId", "name code");
+
+    await redis.set("teachers:all", JSON.stringify(teachers), "EX", 3600);
+
     res.json({ success: true, teachers });
   } catch (error) {
     res.json({ success: false, message: error.message });
   }
 };
 
-// GET ONE
+
 export const getTeacherById = async (req, res) => {
   try {
-    const teacher = await Teacher.findById(req.params.id).populate("courseId", "name code");
+    const id = req.params.id;
 
-    if (!teacher)
-      return res.json({ success: false, message: "Teacher not found" });
+    const cached = await redis.get(`teacher:${id}`);
+    if (cached) {
+      return res.json({ success: true, teacher: JSON.parse(cached), cached: true });
+    }
+
+    const teacher = await Teacher.findById(id).populate("courseId", "name code");
+    if (!teacher) return res.json({ success: false, message: "Teacher not found" });
+
+    await redis.set(`teacher:${id}`, JSON.stringify(teacher), "EX", 3600);
 
     res.json({ success: true, teacher });
   } catch (error) {
@@ -77,16 +90,14 @@ export const getTeacherById = async (req, res) => {
   }
 };
 
-// UPDATE 
+
 export const updateTeacher = async (req, res) => {
   try {
     const { name, email, subject, courseId } = req.body;
 
     let teacher = await Teacher.findById(req.params.id);
-    if (!teacher)
-      return res.json({ success: false, message: "Teacher not found" });
+    if (!teacher) return res.json({ success: false, message: "Teacher not found" });
 
-    // Save basic fields
     teacher.name = name ?? teacher.name;
     teacher.email = email ?? teacher.email;
     teacher.subject = subject ?? teacher.subject;
@@ -99,14 +110,12 @@ export const updateTeacher = async (req, res) => {
 
     if (!newCourse) {
       newCourse = await Course.findOne({
-        $or: [
-          { name: teacher.subject },
-          { subject: teacher.subject }
-        ]
+        $or: [{ name: teacher.subject }, { subject: teacher.subject }]
       });
     }
 
-    if (teacher.courseId && (!newCourse || String(teacher.courseId) !== String(newCourse._id))) {
+    if (teacher.courseId &&
+        (!newCourse || String(teacher.courseId) !== String(newCourse._id))) {
       await Course.findByIdAndUpdate(teacher.courseId, { teacher: null });
     }
 
@@ -121,6 +130,9 @@ export const updateTeacher = async (req, res) => {
 
     broadcast({ type: "UPDATE_TEACHER", payload: teacher });
 
+    await redis.del("teachers:all");
+    await redis.del(`teacher:${teacher._id}`);
+
     res.json({ success: true, teacher });
 
   } catch (error) {
@@ -129,22 +141,26 @@ export const updateTeacher = async (req, res) => {
 };
 
 
-// DELETE
 export const deleteTeacher = async (req, res) => {
   try {
-    const teacher = await Teacher.findById(req.params.id);
-    if (!teacher)
-      return res.json({ success: false, message: "Teacher not found" });
+    const id = req.params.id;
+
+    const teacher = await Teacher.findById(id);
+    if (!teacher) return res.json({ success: false, message: "Teacher not found" });
 
     if (teacher.courseId) {
       await Course.findByIdAndUpdate(teacher.courseId, { teacher: null });
     }
 
-    await Teacher.findByIdAndDelete(req.params.id);
+    await Teacher.findByIdAndDelete(id);
 
-    broadcast({ type: "DELETE_TEACHER", payload: req.params.id });
+    broadcast({ type: "DELETE_TEACHER", payload: id });
+
+    await redis.del("teachers:all");
+    await redis.del(`teacher:${id}`);
 
     res.json({ success: true });
+
   } catch (error) {
     res.json({ success: false, message: error.message });
   }

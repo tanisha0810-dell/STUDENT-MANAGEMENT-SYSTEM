@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "dev": "nodemon src/server.js",
+    "test": "node src/tests/cache.test.js",
+    "demo": "node src/tests/cache.demo.js"
   },
 
   "dependencies": {
@@ -19,6 +21,7 @@
   },
 
   "devDependencies": {
-    "nodemon": "^2.0.22"
+    "nodemon": "^2.0.22",
+    "supertest": "^6.3.3"
   }
 }
